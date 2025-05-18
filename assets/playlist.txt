@@ -1,0 +1,2 @@
+/home/somik/GStreamer/IVI_Project/assets/test.mp4
+/home/somik/GStreamer/IVI_Project/assets/test2_AOT.mp4
