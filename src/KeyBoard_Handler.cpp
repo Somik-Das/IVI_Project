@@ -7,6 +7,7 @@
 #include <atomic>
 #include <termios.h>
 #include <unistd.h>
+#include <fcntl.h>
 #include "KeyBoard_Handler.h"
 
 
@@ -14,15 +15,36 @@
 std::atomic<bool> running(true);
 
 // Get character input non-blocking
+// char KeyBoard_Handler::get_char_non_blocking() {
+//     struct termios oldt, newt;
+//     char ch;
+//     tcgetattr(STDIN_FILENO, &oldt);
+//     newt = oldt;
+//     newt.c_lflag &= ~(ICANON | ECHO);
+//     tcsetattr(STDIN_FILENO, TCSANOW, &newt);
+//     ch = getchar();
+//     tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
+//     return ch;
+// }
+
 char KeyBoard_Handler::get_char_non_blocking() {
     struct termios oldt, newt;
-    char ch;
+    char ch = 0;
+    int oldf;
+
     tcgetattr(STDIN_FILENO, &oldt);
     newt = oldt;
-    newt.c_lflag &= ~(ICANON | ECHO);
+    newt.c_lflag &= ~(ICANON | ECHO);   // Disable buffering
     tcsetattr(STDIN_FILENO, TCSANOW, &newt);
-    ch = getchar();
+    oldf = fcntl(STDIN_FILENO, F_GETFL, 0);
+    fcntl(STDIN_FILENO, F_SETFL, oldf | O_NONBLOCK); // Set non-blocking read
+
+    if (read(STDIN_FILENO, &ch, 1) < 0) {
+        ch = 0; // Nothing read
+    }
+
     tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
+    fcntl(STDIN_FILENO, F_SETFL, oldf); // Restore old flags
     return ch;
 }
 
@@ -78,17 +100,19 @@ void KeyBoard_Handler::keyboard_handler(GstElement* playbin, std::atomic<bool>& 
                 break;
             }
             case 'n': {
-                if (current_index + 1 < playlist.size()) {
-                    current_index++;
-                    g_object_set(playbin, "uri", playlist[current_index].c_str(), NULL);
-                    gst_element_set_state(playbin, GST_STATE_PLAYING);
-                    std::cout << "Next track.\n";
-                }
-                break;
+                    if (current_index + 1 < playlist.size()) {
+                        current_index++;
+                        gst_element_set_state(playbin, GST_STATE_READY);  // Reset
+                        g_object_set(playbin, "uri", playlist[current_index].c_str(), NULL);
+                        gst_element_set_state(playbin, GST_STATE_PLAYING);
+                        std::cout << "Next track.\n";
+                    }
+                    break;
             }
             case 'b': {
-                if (current_index > 0) {
+                    if (current_index > 0) {
                     current_index--;
+                    gst_element_set_state(playbin, GST_STATE_READY);  // Reset
                     g_object_set(playbin, "uri", playlist[current_index].c_str(), NULL);
                     gst_element_set_state(playbin, GST_STATE_PLAYING);
                     std::cout << "Previous track.\n";
