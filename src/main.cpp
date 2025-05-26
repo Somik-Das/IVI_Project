@@ -8,6 +8,7 @@
 #include <termios.h>
 #include <unistd.h>
 #include "KeyBoard_Handler.h"
+#include "rtsp_server.hpp"
 
 // Load playlist from file
 std::vector<std::string> load_playlist(const std::string& path) {
@@ -127,6 +128,17 @@ int main(int argc, char* argv[]) {
     gst_element_set_state(playbin, GST_STATE_NULL);
     gst_object_unref(bus);
     gst_object_unref(playbin);
+
+    std::cout << "4. Start RTSP server\n";
+    int choice;
+    std::cin >> choice;
+
+    switch (choice) {
+        case 4:
+            start_rtsp_server();
+            break;
+        // other options...
+    }
 
     return 0;
 }

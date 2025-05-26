@@ -1,11 +1,7 @@
 #include <gst/gst.h>
-#include <iostream>
-#include <fstream>
 #include <string>
 #include <vector>
-#include <thread>
 #include <atomic>
-#include <termios.h>
 #include <unistd.h>
 
 // Keyboard input handler
