@@ -10,6 +10,8 @@
 #include <fcntl.h>
 #include "KeyBoard_Handler.h"
 #include "cam_recorder.hpp"
+#include "media_muxer.hpp"
+
 
 
 
@@ -135,6 +137,20 @@ void KeyBoard_Handler::keyboard_handler(GstElement* playbin, std::atomic<bool>& 
                 }
                 break;
             }
+
+            case 'm': {
+                std::cout << "[INFO] Merging video and audio into output.mp4...\n";
+                std::string video = "assets/video.mp4";        // Adjust path if needed
+                std::string audio = "assets/audio.mp3";  // Adjust path if needed
+                std::string output = "output1.mp4";
+
+                MediaMuxer muxer(video, audio, output);
+                if (!muxer.run()) {
+                    std::cerr << "[ERROR] Muxing failed.\n";
+                }
+                break;
+            }
+
             case 's': {
                 if (is_recording) {
                     std::cout << "[INFO] Stopping recording...\n";
