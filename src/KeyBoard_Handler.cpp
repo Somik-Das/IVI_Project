@@ -9,6 +9,8 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include "KeyBoard_Handler.h"
+#include "cam_recorder.hpp"
+
 
 
 // Keyboard input handler
@@ -119,6 +121,29 @@ void KeyBoard_Handler::keyboard_handler(GstElement* playbin, std::atomic<bool>& 
                 }
                 break;
             }
+
+            case 'c': {
+                std::cout << "[INFO] Starting dummy camera preview...\n";
+                init_camera_pipeline(); // builds the pipeline
+                gst_element_set_state(camera_pipeline, GST_STATE_PLAYING); // starts dummy stream
+                break;
+            }
+            case 'v': {
+                if (!is_recording) {
+                    std::cout << "[INFO] Starting recording...\n";
+                    start_recording();
+                }
+                break;
+            }
+            case 's': {
+                if (is_recording) {
+                    std::cout << "[INFO] Stopping recording...\n";
+                    stop_recording();
+                    destroy_camera_pipeline();
+                }
+                break;
+            }
+
             case 'q': {
                 running = false;
                 std::cout << "Quitting...\n";
